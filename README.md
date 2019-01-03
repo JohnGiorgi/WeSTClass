@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/JohnGiorgi/WeSTClass.svg?branch=master)](https://travis-ci.org/JohnGiorgi/WeSTClass)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4abc83f14997415f85930c4b1b357ef8)](https://app.codacy.com/app/JohnGiorgi/WeSTClass?utm_source=github.com&utm_medium=referral&utm_content=JohnGiorgi/WeSTClass&utm_campaign=Badge_Grade_Settings)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c4cb523a093a405db7e2b56b3c856d53)](https://www.codacy.com/app/JohnGiorgi/WeSTClass?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=JohnGiorgi/WeSTClass&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/c4cb523a093a405db7e2b56b3c856d53)](https://www.codacy.com/app/JohnGiorgi/WeSTClass?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=JohnGiorgi/WeSTClass&amp;utm_campaign=Badge_Coverage)
 
 # WeSTClass
 
