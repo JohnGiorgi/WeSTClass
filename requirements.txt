@@ -1,6 +1,5 @@
-numpy
-nltk
-gensim
-sklearn
-keras
-spherecluster
+gensim==3.6.0
+Keras==2.2.4
+nltk==3.4
+tensorflow==1.12.0
+spherecluster==0.1.7

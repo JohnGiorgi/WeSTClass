@@ -1,17 +1,20 @@
-import numpy as np
-np.random.seed(1234)
+import csv
 import os
 from time import time
-import csv
+
 import keras.backend as K
+import numpy as np
+from keras import constraints, initializers, regularizers
 # K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=30, inter_op_parallelism_threads=30)))
 from keras.engine.topology import Layer
-from keras.layers import Dense, Input, Convolution1D, Embedding, GlobalMaxPooling1D, GRU, TimeDistributed
+from keras.initializers import RandomUniform, VarianceScaling
+from keras.layers import (GRU, Convolution1D, Dense, Embedding,
+                          GlobalMaxPooling1D, Input, TimeDistributed)
 from keras.layers.merge import Concatenate
 from keras.models import Model
-from keras import initializers, regularizers, constraints
-from keras.initializers import VarianceScaling, RandomUniform
 from sklearn.metrics import f1_score
+
+np.random.seed(1234)
 
 
 def f1(y_true, y_pred):

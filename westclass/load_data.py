@@ -1,13 +1,13 @@
 import csv
-import numpy as np
+import itertools
 import os
 import re
-import itertools
 from collections import Counter
 from os.path import join
+
+import numpy as np
 from nltk import tokenize
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 
 def read_file(data_dir, with_evaluation):

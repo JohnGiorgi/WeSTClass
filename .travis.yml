@@ -1,0 +1,31 @@
+language: python
+
+os:
+- linux
+
+python:
+- '3.6'
+
+branches:
+  only:
+  - master
+
+install:
+- pip install -r requirements.txt
+- pip install pytest-cov # to generate coverage report
+- pip install coverage  # to convert coverage report to xml
+- pip install codacy-coverage  # to push coverage to codacy
+
+before_script:
+- cd westclass
+
+script:
+- pytest --cov=westclass -v
+
+after_success:
+- coverage xml  # conver coverage report to xml
+- python-codacy-coverage -r coverage.xml  # push coverage to codacy
+
+# env:
+#   matrix:
+#    secure:

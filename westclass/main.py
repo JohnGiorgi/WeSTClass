@@ -1,13 +1,16 @@
-import numpy as np
-np.random.seed(1234)
-from time import time
 import os
-# os.environ["CUDA_VISIBLE_DEVICES"]="0"
-from model import WSTC, f1
-from keras.optimizers import SGD
-from gen import augment, pseudodocs
-from load_data import load_dataset
+from time import time
+
+import numpy as np
 from gensim.models import word2vec
+from keras.optimizers import SGD
+
+from .gen import augment, pseudodocs
+from .load_data import load_dataset
+# os.environ["CUDA_VISIBLE_DEVICES"]="0"
+from .model import WSTC, f1
+
+np.random.seed(1234)
 
 
 def train_word2vec(sentence_matrix, vocabulary_inv, dataset_name, mode='skipgram',
@@ -65,7 +68,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='main',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    
+
     ### Basic settings ###
     # dataset selection: AG's News (default) and Yelp Review
     parser.add_argument('--dataset', default='agnews', choices=['agnews', 'yelp'])
@@ -109,7 +112,7 @@ if __name__ == "__main__":
     delta = args.delta
 
     word_embedding_dim = 100
-    
+
     if args.model == 'cnn':
 
         if args.dataset == 'agnews':
@@ -125,7 +128,7 @@ if __name__ == "__main__":
             max_sequence_length = 500
 
         decay = 1e-6
-    
+
     elif args.model == 'rnn':
 
         if args.dataset == 'agnews':
@@ -161,11 +164,11 @@ if __name__ == "__main__":
     elif args.sup_source == 'docs':
         x, y, word_counts, vocabulary, vocabulary_inv_list, len_avg, len_std, word_sup_list, sup_idx, perm = \
             load_dataset(args.dataset, model=args.model, sup_source=args.sup_source, with_evaluation=with_evaluation, truncate_len=max_sequence_length)
-    
+
     np.random.seed(1234)
     vocabulary_inv = {key: value for key, value in enumerate(vocabulary_inv_list)}
     vocab_sz = len(vocabulary_inv)
-    n_classes = len(word_sup_list)    
+    n_classes = len(word_sup_list)
 
     if args.model == 'cnn':
         if x.shape[1] < max_sequence_length:
@@ -180,29 +183,29 @@ if __name__ == "__main__":
             sent_len = x.shape[2]
         x = x[:, :doc_len, :sent_len]
         sequence_length = [doc_len, sent_len]
-    
+
     print("\n### Input preparation ###")
     embedding_weights = train_word2vec(x, vocabulary_inv, args.dataset)
     embedding_mat = np.array([np.array(embedding_weights[word]) for word in vocabulary_inv])
-    
+
     wstc = WSTC(input_shape=x.shape, n_classes=n_classes, y=y, model=args.model,
                 vocab_sz=vocab_sz, embedding_matrix=embedding_mat, word_embedding_dim=word_embedding_dim)
 
     if args.trained_weights is None:
         print("\n### Phase 1: vMF distribution fitting & pseudo document generation ###")
-        
+
         word_sup_array = np.array([np.array([vocabulary[word] for word in word_class_list]) for word_class_list in word_sup_list])
-        
+
         total_counts = sum(word_counts[ele] for ele in word_counts)
         total_counts -= word_counts[vocabulary_inv_list[0]]
         background_array = np.zeros(vocab_sz)
         for i in range(1,vocab_sz):
             background_array[i] = word_counts[vocabulary_inv[i]]/total_counts
         seed_docs, seed_label = pseudodocs(word_sup_array, gamma, background_array,
-                                           sequence_length, len_avg, len_std, beta, alpha, 
-                                           vocabulary_inv, embedding_mat, args.model, 
+                                           sequence_length, len_avg, len_std, beta, alpha,
+                                           vocabulary_inv, embedding_mat, args.model,
                                            './results/{}/{}/phase1/'.format(args.dataset, args.model))
-        
+
         if args.sup_source == 'docs':
             if args.model == 'cnn':
                 num_real_doc = len(sup_idx.flatten()) * 10
@@ -233,7 +236,7 @@ if __name__ == "__main__":
         selftrain_optimizer = SGD(lr=self_lr, momentum=0.9, decay=decay)
         wstc.compile(optimizer=selftrain_optimizer, loss='kld')
         y_pred = wstc.fit(x, y=y, tol=delta, maxiter=args.maxiter, batch_size=args.batch_size,
-                         update_interval=update_interval, save_dir='./results/{}/{}/phase3'.format(args.dataset, args.model), 
+                         update_interval=update_interval, save_dir='./results/{}/{}/phase3'.format(args.dataset, args.model),
                          save_suffix=args.dataset+'_'+str(args.sup_source))
         print('Self-training time: {:.2f}s'.format(time() - t0))
 
@@ -244,6 +247,6 @@ if __name__ == "__main__":
         if y is not None:
             f1_macro, f1_micro = np.round(f1(y, y_pred), 5)
             print('F1 score: f1_macro = {}, f1_micro = {}'.format(f1_macro, f1_micro))
-    
+
     print("\n### Generating outputs ###")
     write_output('./' + args.dataset, y_pred, perm)
