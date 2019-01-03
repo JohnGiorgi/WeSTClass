@@ -26,6 +26,6 @@ after_success:
 - coverage xml  # conver coverage report to xml
 - python-codacy-coverage -r coverage.xml  # push coverage to codacy
 
-# env:
-#   matrix:
-#    secure:
+env:
+  matrix:
+    secure: 7dae13e261e44d09af6af755f2df030f
