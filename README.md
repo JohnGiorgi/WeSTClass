@@ -1,5 +1,7 @@
 # WeSTClass
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4abc83f14997415f85930c4b1b357ef8)](https://app.codacy.com/app/JohnGiorgi/WeSTClass?utm_source=github.com&utm_medium=referral&utm_content=JohnGiorgi/WeSTClass&utm_campaign=Badge_Grade_Settings)
+
 The source code used for Weakly-Supervised Neural Text Classification, published in CIKM 2018.
 
 ## Requirements
