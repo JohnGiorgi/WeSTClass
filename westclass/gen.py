@@ -1,7 +1,10 @@
-import numpy as np
 import os
-np.random.seed(1234)
+
+import numpy as np
+
 from spherecluster import SphericalKMeans, VonMisesFisherMixture, sample_vMF
+
+np.random.seed(1234)
 
 
 def seed_expansion(word_sup_array, prob_sup_array, sz, write_path, vocabulary_inv, embedding_mat):
