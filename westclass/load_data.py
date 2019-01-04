@@ -3,17 +3,18 @@ import itertools
 import os
 import re
 from collections import Counter
-from os.path import join
 
 import numpy as np
 from nltk import tokenize
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 
 def read_file(data_dir, with_evaluation):
     data = []
     target = []
-    with open(join(data_dir, 'dataset.csv'), 'rt', encoding='utf-8') as csvfile:
+
+    dataset_dir = os.path.join(data_dir, 'dataset.csv')
+
+    with open(dataset_dir, 'rt', encoding='utf-8') as csvfile:
         csv.field_size_limit(500 * 1024 * 1024)
         reader = csv.reader(csvfile)
         for row in reader:
@@ -22,8 +23,10 @@ def read_file(data_dir, with_evaluation):
             data.append(doc)
     if with_evaluation:
         y = np.asarray(target)
-        assert len(data) == len(y)
-        assert set(range(len(np.unique(y)))) == set(np.unique(y))
+        if len(data) != len(y):
+            raise AssertionError('The number of labels (y) does not match the number of input examples')
+        if set(range(len(np.unique(y)))) != set(np.unique(y)):
+            raise AssertionError('The labels (y) should consist of the integers 0 to len(data)')
     else:
         y = None
     return data, y
@@ -63,7 +66,7 @@ def pad_sequences(sentences, padding_word="<PAD/>", pad_len=None):
         sequence_length = max(len(x) for x in sentences)
 
     padded_sentences = []
-    for i in range(len(sentences)):
+    for i, _ in enumerate(sentences):
         sentence = sentences[i]
         num_padding = sequence_length - len(sentence)
         new_sentence = sentence + [padding_word] * num_padding
@@ -92,7 +95,7 @@ def build_input_data_rnn(data, vocabulary, max_doc_len, max_sent_len):
         for j, sent in enumerate(doc):
             k = 0
             for word in sent:
-                x[i,j,k] = vocabulary[word]
+                x[i, j, k] = vocabulary[word]
                 k += 1
     return x
 
@@ -102,7 +105,7 @@ def extract_keywords(data_path, vocab, class_type, num_keywords, data, perm):
     sup_idx = []
     sup_label = []
     file_name = 'doc_id.txt'
-    infile = open(join(data_path, file_name), mode='r', encoding='utf-8')
+    infile = open(os.path.join(data_path, file_name), mode='r', encoding='utf-8')
     text = infile.readlines()
     for i, line in enumerate(text):
         line = line.split('\n')[0]
@@ -129,7 +132,7 @@ def extract_keywords(data_path, vocab, class_type, num_keywords, data, perm):
     print("Extracted keywords for each class: ")
     keywords = []
     cnt = 0
-    for i in range(len(sup_idx)):
+    for i, _ in enumerate(sup_idx):
         class_vec = np.average(sup_x[cnt:cnt+len(sup_idx[i])], axis=0)
         cnt += len(sup_idx[i])
         sort_idx = np.argsort(class_vec)[::-1]
@@ -178,7 +181,7 @@ def load_keywords(data_path, sup_source):
         file_name = 'keywords.txt'
         print("\n### Supervision type: Class-related Keywords ###")
         print("Keywords for each class: ")
-    infile = open(join(data_path, file_name), mode='r', encoding='utf-8')
+    infile = open(os.path.join(data_path, file_name), mode='r', encoding='utf-8')
     text = infile.readlines()
 
     keywords = []

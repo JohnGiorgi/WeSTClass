@@ -1,5 +1,3 @@
-import pytest
-
 from .. import load_data
 
 

@@ -1,8 +1,7 @@
 import os
 
 import numpy as np
-
-from spherecluster import SphericalKMeans, VonMisesFisherMixture, sample_vMF
+from spherecluster import VonMisesFisherMixture, sample_vMF
 
 np.random.seed(1234)
 
@@ -51,10 +50,10 @@ def label_expansion(class_labels, write_path, vocabulary_inv, embedding_mat):
         current_sz += 1
         expanded_array = seed_expansion(class_labels, prob_sup_array, current_sz, None, vocabulary_inv, embedding_mat)
         all_class_labels = [w for w_class in expanded_array for w in w_class]
-    
+
     expanded_array = seed_expansion(class_labels, prob_sup_array, current_sz-1, None, vocabulary_inv, embedding_mat)
     print("Final expansion size t = {}".format(len(expanded_array[0])))
-    
+
     centers = []
     kappas = []
     print("Top-t nearest words for each class:")
@@ -70,7 +69,7 @@ def label_expansion(class_labels, write_path, vocabulary_inv, embedding_mat):
         kappa = vmf_soft.concentrations_[0]
         centers.append(center)
         kappas.append(kappa)
-    
+
     for j, expanded_class in enumerate(expanded_array):
         if write_path is not None:
             if not os.path.exists(write_path):
@@ -84,9 +83,8 @@ def label_expansion(class_labels, write_path, vocabulary_inv, embedding_mat):
 
 
 def pseudodocs(word_sup_array, total_num, background_array, sequence_length, len_avg,
-                len_std, num_doc, interp_weight, vocabulary_inv, embedding_mat, model, save_dir=None):
-    
-    for i in range(len(embedding_mat)):
+               len_std, num_doc, interp_weight, vocabulary_inv, embedding_mat, model, save_dir=None):
+    for i, _ in enumerate(embedding_mat):
         embedding_mat[i] = embedding_mat[i] / np.linalg.norm(embedding_mat[i])
 
     _, centers, kappas = \
@@ -167,7 +165,7 @@ def augment(x, sup_idx, total_len):
         new_y = np.concatenate((new_y, y), axis=0)
 
     pretrain_labels = np.zeros((len(new_y),len(np.unique(y))))
-    for i in range(len(new_y)):
+    for i, _ in enumerate(new_y):
         pretrain_labels[i][new_y[i]] = 1.0
 
     print("Finished labeled documents augmentation.")

@@ -4,10 +4,10 @@ from time import time
 
 import keras.backend as K
 import numpy as np
-from keras import constraints, initializers, regularizers
+from keras import constraints, regularizers
 # K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=30, inter_op_parallelism_threads=30)))
 from keras.engine.topology import Layer
-from keras.initializers import RandomUniform, VarianceScaling
+from keras.initializers import RandomUniform
 from keras.layers import (GRU, Convolution1D, Dense, Embedding,
                           GlobalMaxPooling1D, Input, TimeDistributed)
 from keras.layers.merge import Concatenate
@@ -19,7 +19,9 @@ np.random.seed(1234)
 
 def f1(y_true, y_pred):
     y_true = y_true.astype(np.int64)
-    assert y_pred.size == y_true.size
+    if y_pred.size != y_true.size:
+        raise AssertionError(('The number of predicted labels (y.pred) did not match the number of '
+                              'true labels (y_true).'))
     f1_macro = f1_score(y_true, y_pred, average='macro')
     f1_micro = f1_score(y_true, y_pred, average='micro')
     return f1_macro, f1_micro
@@ -28,7 +30,7 @@ def f1(y_true, y_pred):
 def ConvolutionLayer(input_shape, n_classes, filter_sizes=[2, 3, 4, 5], num_filters=20, word_trainable=False, vocab_sz=None,
                      embedding_matrix=None, word_embedding_dim=100, hidden_dim=20, act='relu', init='ones'):
     x = Input(shape=(input_shape,), name='input')
-    z = Embedding(vocab_sz, word_embedding_dim, input_length=(input_shape,), name="embedding", 
+    z = Embedding(vocab_sz, word_embedding_dim, input_length=(input_shape,), name="embedding",
                     weights=[embedding_matrix], trainable=word_trainable)(x)
     conv_blocks = []
     for sz in filter_sizes:
@@ -51,7 +53,7 @@ def dot_product(x, kernel):
         return K.squeeze(K.dot(x, K.expand_dims(kernel)), axis=-1)
     else:
         return K.dot(x, kernel)
-    
+
 
 class AttentionWithContext(Layer):
     def __init__(self,
@@ -74,7 +76,9 @@ class AttentionWithContext(Layer):
         super(AttentionWithContext, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        assert len(input_shape) == 3
+        if len(input_shape) != 3:
+            raise AssertionError(('Expected input shape of 3 to attention layer. '
+                                  'Got {}.'.format(input_shape)))
 
         self.W = self.add_weight(shape=(input_shape[-1], input_shape[-1],),
                                  initializer=self.init,
@@ -142,7 +146,7 @@ def HierAttLayer(input_shape, n_classes, word_trainable=False, vocab_sz=None,
     l_dense_sent = TimeDistributed(Dense(fc_dim))(l_lstm_sent)
     l_att_sent = AttentionWithContext()(l_dense_sent)
     y = Dense(n_classes, activation='softmax')(l_att_sent)
-    
+
     return Model(inputs=x, outputs=y, name='classifier')
 
 
@@ -165,13 +169,13 @@ class WSTC(object):
         self.n_classes = n_classes
         if model == 'cnn':
             self.classifier = ConvolutionLayer(self.input_shape[1], n_classes=n_classes,
-                                                vocab_sz=vocab_sz, embedding_matrix=embedding_matrix, 
-                                                word_embedding_dim=word_embedding_dim, init=init)
+                                               vocab_sz=vocab_sz, embedding_matrix=embedding_matrix,
+                                               word_embedding_dim=word_embedding_dim, init=init)
         elif model == 'rnn':
             self.classifier = HierAttLayer(self.input_shape, n_classes=n_classes,
-                                             vocab_sz=vocab_sz, embedding_matrix=embedding_matrix, 
-                                             word_embedding_dim=word_embedding_dim)
-        
+                                           vocab_sz=vocab_sz, embedding_matrix=embedding_matrix,
+                                           word_embedding_dim=word_embedding_dim)
+
         self.model = self.classifier
         self.sup_list = {}
 
@@ -238,7 +242,6 @@ class WSTC(object):
         for ite in range(int(maxiter)):
             if ite % update_interval == 0:
                 q = self.model.predict(x, verbose=0)
-
                 y_pred = q.argmax(axis=1)
                 p = self.target_distribution(q, power)
                 print('\nIter {}: '.format(ite), end='')
@@ -247,7 +250,7 @@ class WSTC(object):
                     logdict = dict(iter=ite, f1_macro=f1_macro, f1_micro=f1_micro)
                     logwriter.writerow(logdict)
                     print('f1_macro = {}, f1_micro = {}'.format(f1_macro, f1_micro))
-                    
+
                 # check stop criterion
                 delta_label = np.sum(y_pred != y_pred_last).astype(np.float) / y_pred.shape[0]
                 y_pred_last = np.copy(y_pred)
