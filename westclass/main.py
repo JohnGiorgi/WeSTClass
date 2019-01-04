@@ -71,13 +71,15 @@ if __name__ == "__main__":
 
     ### Basic settings ###
     # dataset selection: AG's News (default) and Yelp Review
-    parser.add_argument('--dataset', default='agnews', choices=['agnews', 'yelp'])
+    parser.add_argument('--dataset', help=("Path to the dataset folder. Expects a file "
+                                           "'dataset.csv' to be present"))
     # neural model selection: Convolutional Neural Network (default) and Hierarchical Attention Network
     parser.add_argument('--model', default='cnn', choices=['cnn', 'rnn'])
     # weak supervision selection: label surface names (default), class-related keywords and labeled documents
     parser.add_argument('--sup_source', default='labels', choices=['labels', 'keywords', 'docs'])
     # whether ground truth labels are available for evaluation: True (default), False
     parser.add_argument('--with_evaluation', default='True', choices=['True', 'False'])
+    parser.add_argument('--class_type', default='topic', choices=['topic', 'sentiment'])
 
     ### Training settings ###
     # mini-batch size for both pre-training and self-training: 256 (default)
@@ -99,6 +101,11 @@ if __name__ == "__main__":
     # self-training stopping criterion (delta): None (default)
     parser.add_argument('--delta', default=0.1, type=float)
 
+    parser.add_argument('--self_lr', default=1e-3, type=float)
+    parser.add_argument('--max_sequence_length', default=100, type=int)
+    parser.add_argument('--sent_len', default=45, type=int)
+    parser.add_argument('--doc_len', default=10, type=int)
+
     ### Case study settings ###
     # trained model directory: None (default)
     parser.add_argument('--trained_weights', default=None)
@@ -106,45 +113,25 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
+    class_type = args.class_type
+
     alpha = args.alpha
     beta = args.beta
     gamma = args.gamma
     delta = args.delta
 
+    self_lr = args.self_lr
+
+    max_sequence_length = args.max_sequence_length
+    sent_len = args.sent_len
+    doc_len = args.doc_len
+
     word_embedding_dim = 100
 
     if args.model == 'cnn':
-
-        if args.dataset == 'agnews':
-            update_interval = 50
-            pretrain_epochs = 20
-            self_lr = 1e-3
-            max_sequence_length = 100
-
-        elif args.dataset == 'yelp':
-            update_interval = 50
-            pretrain_epochs = 30
-            self_lr = 1e-4
-            max_sequence_length = 500
-
         decay = 1e-6
 
     elif args.model == 'rnn':
-
-        if args.dataset == 'agnews':
-            update_interval = 50
-            pretrain_epochs = 100
-            self_lr = 1e-3
-            sent_len = 45
-            doc_len = 10
-
-        elif args.dataset == 'yelp':
-            update_interval = 100
-            pretrain_epochs = 200
-            self_lr = 1e-4
-            sent_len = 30
-            doc_len = 40
-
         decay = 1e-5
         max_sequence_length = [doc_len, sent_len]
 
@@ -159,11 +146,11 @@ if __name__ == "__main__":
         with_evaluation = False
     if args.sup_source == 'labels' or args.sup_source == 'keywords':
         x, y, word_counts, vocabulary, vocabulary_inv_list, len_avg, len_std, word_sup_list, perm = \
-            load_dataset(args.dataset, model=args.model, sup_source=args.sup_source, with_evaluation=with_evaluation, truncate_len=max_sequence_length)
+            load_dataset(args.dataset, model=args.model, sup_source=args.sup_source, class_type=class_type, with_evaluation=with_evaluation, truncate_len=max_sequence_length)
         sup_idx = None
     elif args.sup_source == 'docs':
         x, y, word_counts, vocabulary, vocabulary_inv_list, len_avg, len_std, word_sup_list, sup_idx, perm = \
-            load_dataset(args.dataset, model=args.model, sup_source=args.sup_source, with_evaluation=with_evaluation, truncate_len=max_sequence_length)
+            load_dataset(args.dataset, model=args.model, sup_source=args.sup_source, class_type=class_type, with_evaluation=with_evaluation, truncate_len=max_sequence_length)
 
     np.random.seed(1234)
     vocabulary_inv = {key: value for key, value in enumerate(vocabulary_inv_list)}
@@ -237,7 +224,7 @@ if __name__ == "__main__":
         wstc.compile(optimizer=selftrain_optimizer, loss='kld')
         y_pred = wstc.fit(x, y=y, tol=delta, maxiter=args.maxiter, batch_size=args.batch_size,
                          update_interval=update_interval, save_dir='./results/{}/{}/phase3'.format(args.dataset, args.model),
-                         save_suffix=args.dataset+'_'+str(args.sup_source))
+                         save_suffix='{}_{}'.format(os.path.basename(args.dataset), args.sup_source))
         print('Self-training time: {:.2f}s'.format(time() - t0))
 
     else:
