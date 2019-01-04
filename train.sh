@@ -35,7 +35,7 @@ python -m westclass.main \
 
 elif [ $model == "rnn" ]
 then
-if [ $dataset == "westclass/agnews" ]
+if [ $dataset == "datasets/agnews" ]
 then
 class_type=topic
 pretrain_epochs=100
@@ -43,7 +43,7 @@ update_interval=50
 self_lr=1e-3
 sent_len=45
 doc_len=10
-elif [ $dataset == "westclass/yelp" ]
+elif [ $dataset == "datasets/yelp" ]
 then
 class_type=sentiment
 pretrain_epochs=200
