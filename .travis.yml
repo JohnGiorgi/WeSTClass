@@ -12,7 +12,7 @@ branches:
 
 install:
 - pip install -r requirements.txt
-- pip install pytest-cov # to generate coverage report
+- pip install pytest-cov  # to generate coverage report
 - pip install coverage  # to convert coverage report to xml
 - pip install codacy-coverage  # to push coverage to codacy
 
@@ -23,9 +23,9 @@ script:
 - pytest --cov=westclass -v
 
 after_success:
-- coverage xml  # conver coverage report to xml
+- coverage xml  # convert coverage report to xml
 - python-codacy-coverage -r coverage.xml  # push coverage to codacy
 
 env:
   matrix:
-    secure: 7dae13e261e44d09af6af755f2df030f
+    secure: V5xCGzuVFKkJm3M48rQpivGqDR2MK7H42PFq115vxWpuh6fDmrBj5JpN8dOz9qdWPQQmFmDk4p0Jkq6NblcY97IRQyVKp2SOk1Hxg1n/UFRLv0iib7QeBfH9iPuDpava9G/1hfGGuRANktBC1VaT1b5AwY5xr9B3LbP211zkWkCq8QTIjNnjjay4vpHJNtJ7Z9I6qxBYAG5VlPB6ea+LkRKyj0fmBHzfGZ/dIJ6AGA3IcyaiEqRsV/0mUwR72yvvdjtla5pwSzNxRLwHx5NUaz7SBO7kJGjXa0n0hscn3hhzTEbZ7HhHJODEvoZ/3DdihaZVn996ReT7GgqlU/HWcgYEJ/lv2aYN5W6cEIUmQ2PgLTZXlI6PjT7dyQ/6Tfpc2PE2JcR4KEM5YbQEi1/pEwTme3T7BphBitDFnmtvELVFWW3dNbip5gRvUIgaLbJezZgq3S9eARnHgRbNe5Hptgte4Dt1UxkU+lystNCfDgAcI+Ich2ZY6cuWaFUQ7UkJHjsfs7fPRpwD3S5OZtSrDiioaCx2jBSfDyy/Kjqg53Nrym6++qClSKMFEVqFXe7VXbqbewVON/VsoudzCaAwsQO3ue7EjnqHYR8sApHntmun9CNIShX8+iSM1n4ddP8hxnHpOncU4yUUf53vpAvIKL7Ul5R/h1hDIfK43hFkMgo=
